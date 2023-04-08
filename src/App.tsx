@@ -5,9 +5,29 @@ import { fetchTracks } from './lib/fetchTracks';
 import { useQuery } from '@tanstack/react-query';
 import { AlbumCover } from './components';
 import swal from 'sweetalert';
+import { Saved, SavedTrack } from 'spotify-types';
+import { shuffleArray } from './lib/shuffleArray';
 
 const getRandomIndex = (maxValue: number) =>
   Math.floor(Math.random() * maxValue);
+
+const getWrongChoicesIndex = (maxValue: number) => {
+  if (maxValue < 3) throw new Error('There are less than three songs');
+
+  const choices = new Set<number>();
+  while (choices.size < 2) {
+    choices.add(getRandomIndex(maxValue));
+  }
+  return [...choices];
+};
+
+const getTrack = (tracks: SavedTrack[], index: number) => {
+  const track = tracks[index];
+  if (track === undefined) {
+    throw new Error(`There is no track for index ${index}`);
+  }
+  return track;
+};
 
 const App = () => {
   const { data: tracks, isSuccess } = useQuery({
@@ -19,22 +39,7 @@ const App = () => {
   }
 
   const [trackIndex, setTrackIndex] = useState(getRandomIndex(tracks.length));
-  const currentTrack = tracks[trackIndex];
-
-  if (currentTrack === undefined) {
-    return <div>You don't have any tracks</div>;
-  }
-
-  const goToNextTrack = () => {
-    if (tracks.length <= 1) throw new Error('cannot find next track');
-    setTrackIndex(prevState => {
-      let nextState = 0;
-      do {
-        nextState = getRandomIndex(tracks.length);
-      } while (nextState === prevState);
-      return nextState;
-    });
-  };
+  const currentTrack = getTrack(tracks, trackIndex);
 
   const checkAnswer = (id: number) => {
     const message = `It is ${
@@ -46,15 +51,12 @@ const App = () => {
       swal('Wrong', message, 'error');
     }
   };
-  const [firstTrack, secondTrack, thirdTrack] = tracks;
 
-  if (
-    firstTrack === undefined ||
-    secondTrack === undefined ||
-    thirdTrack === undefined
-  ) {
-    return <div>You don't have any tracks</div>;
-  }
+  const possibleTracks = shuffleArray([
+    trackIndex,
+    ...getWrongChoicesIndex(tracks.length),
+  ]).map(index => [getTrack(tracks, index), index] as const);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -67,12 +69,9 @@ const App = () => {
       </div>
       <audio src={currentTrack.track.preview_url} controls autoPlay />
       <div className="App-buttons">
-        <button onClick={goToNextTrack}>Next track</button>
-      </div>
-      <div className="App-buttons">
-        <button onClick={() => checkAnswer(0)}>{firstTrack.track.name}</button>
-        <button onClick={() => checkAnswer(1)}>{secondTrack.track.name}</button>
-        <button onClick={() => checkAnswer(2)}>{thirdTrack.track.name}</button>
+        {possibleTracks.map(([track, index]) => (
+          <button onClick={() => checkAnswer(index)}>{track.track.name}</button>
+        ))}
       </div>
     </div>
   );
