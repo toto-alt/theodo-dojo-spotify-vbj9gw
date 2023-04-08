@@ -6,6 +6,9 @@ import { useQuery } from '@tanstack/react-query';
 import { AlbumCover } from './components';
 import swal from 'sweetalert';
 
+const getRandomIndex = (maxValue: number) =>
+  Math.floor(Math.random() * maxValue);
+
 const App = () => {
   const { data: tracks, isSuccess } = useQuery({
     queryKey: ['tracks'],
@@ -15,15 +18,23 @@ const App = () => {
     return <div>Oups, something wrong happened</div>;
   }
 
-  const [trackIndex, setTrackIndex] = useState(0);
+  const [trackIndex, setTrackIndex] = useState(getRandomIndex(tracks.length));
   const currentTrack = tracks[trackIndex];
 
   if (currentTrack === undefined) {
     return <div>You don't have any tracks</div>;
   }
 
-  const goToNextTrack = () =>
-    setTrackIndex(prevState => (prevState + 1) % tracks.length);
+  const goToNextTrack = () => {
+    if (tracks.length <= 1) throw new Error('cannot find next track');
+    setTrackIndex(prevState => {
+      let nextState = 0;
+      do {
+        nextState = getRandomIndex(tracks.length);
+      } while (nextState === prevState);
+      return nextState;
+    });
+  };
 
   const checkAnswer = (id: number) => {
     const message = `It is ${
