@@ -17,7 +17,13 @@ const App = () => {
   const goToNextTrack = () =>
     setTrackIndex(prevState => (prevState + 1) % trackUrls.length);
 
-  const { data: tracks } = useQuery({ queryKey: [''], queryFn: fetchTracks });
+  const { data: tracks, isSuccess } = useQuery({
+    queryKey: [''],
+    queryFn: fetchTracks,
+  });
+  if (!isSuccess) {
+    return <div>Oups, something wrong happened</div>;
+  }
   return (
     <div className="App">
       <header className="App-header">
@@ -25,7 +31,8 @@ const App = () => {
         <h1 className="App-title">Bienvenue sur mon blind test</h1>
       </header>
       <div className="App-images">
-        <p>You currently have {tracks?.length} songs</p>
+        <p>You currently have {tracks.length} songs</p>
+        <p>Your first song is {tracks[0]?.track.name}</p>
       </div>
       <div className="App-buttons">
         <audio src={trackUrls[trackIndex]} controls />
