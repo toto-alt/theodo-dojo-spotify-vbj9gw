@@ -1,12 +1,14 @@
 import logo from './assets/logo.svg';
 import './App.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchTracks } from './lib/fetchTracks';
 import { useQuery } from '@tanstack/react-query';
-import { AlbumCover, TrackChoice } from './components';
+import { TrackChoice } from './components';
 import swal from 'sweetalert';
 import { SavedTrack } from 'spotify-types';
 import { shuffleArray } from './lib/shuffleArray';
+
+const MAX_TIME = 30 * 1000;
 
 const getRandomIndex = (maxValue: number) =>
   Math.floor(Math.random() * maxValue);
@@ -41,7 +43,21 @@ const App = () => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(
     getRandomIndex(tracks.length),
   );
+  const [timer, setTimer] = useState<number>();
+  const stopTimer = () => {
+    clearTimeout(timer);
+    setTimer(undefined);
+  };
+
   const currentTrack = getTrack(tracks, currentTrackIndex);
+
+  useEffect(() => {
+    const timeout = setTimeout(changeSong, MAX_TIME);
+    setTimer(timeout);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [currentTrackIndex]);
 
   const changeSong = () =>
     setCurrentTrackIndex(prevState => {
@@ -60,6 +76,7 @@ const App = () => {
       pickedTrack.track.name
     } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
     if (id === currentTrackIndex) {
+      stopTimer();
       const message = `It is ${
         pickedTrack.track.name
       } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
