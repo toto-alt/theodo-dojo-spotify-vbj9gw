@@ -3,7 +3,7 @@ import './App.css';
 import { useState } from 'react';
 import { fetchTracks } from './lib/fetchTracks';
 import { useQuery } from '@tanstack/react-query';
-import { AlbumCover } from './components';
+import { AlbumCover, TrackChoice } from './components';
 import swal from 'sweetalert';
 import { SavedTrack } from 'spotify-types';
 import { shuffleArray } from './lib/shuffleArray';
@@ -84,15 +84,12 @@ const App = () => {
       </header>
       <div className="App-images">
         <p>You currently have {tracks.length} songs</p>
-        <AlbumCover track={currentTrack.track} />
+        <audio src={currentTrack.track.preview_url} controls autoPlay />
       </div>
-      <audio src={currentTrack.track.preview_url} controls autoPlay />
+      <button onClick={changeSong}>Change song</button>
       <div className="App-buttons">
-        <button onClick={changeSong}>Change song</button>
-      </div>
-      <div className="App-buttons">
-        {possibleTracks.map(([track, index]) => (
-          <button onClick={() => checkAnswer(index)}>{track.track.name}</button>
+        {possibleTracks.map(([{ track }, index]) => (
+          <TrackChoice track={track} onClick={() => checkAnswer(index)} />
         ))}
       </div>
     </div>

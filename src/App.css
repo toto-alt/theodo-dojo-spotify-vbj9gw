@@ -23,12 +23,16 @@
 }
 
 .App-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
   margin-top: 30px;
   margin-bottom: 30px;
 }
 
-.App-buttons .btn {
+.App-buttons button {
   margin: 0 10px;
+  cursor: pointer;
 }
 
 @keyframes App-logo-spin {
@@ -38,4 +42,11 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.App-buttons--choice {
+  flex: 1;
+}
+.App-buttons--choice img {
+  width: 100%;
 }
