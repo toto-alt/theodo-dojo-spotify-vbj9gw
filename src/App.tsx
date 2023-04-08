@@ -5,17 +5,17 @@ import { fetchTracks } from './lib/fetchTracks';
 import { useQuery } from '@tanstack/react-query';
 import { AlbumCover } from './components';
 import swal from 'sweetalert';
-import { Saved, SavedTrack } from 'spotify-types';
+import { SavedTrack } from 'spotify-types';
 import { shuffleArray } from './lib/shuffleArray';
 
 const getRandomIndex = (maxValue: number) =>
   Math.floor(Math.random() * maxValue);
 
-const getWrongChoicesIndex = (maxValue: number) => {
+const getChoicesIndex = (correctIndex: number, maxValue: number) => {
   if (maxValue < 3) throw new Error('There are less than three songs');
 
-  const choices = new Set<number>();
-  while (choices.size < 2) {
+  const choices = new Set([correctIndex]);
+  while (choices.size < 3) {
     choices.add(getRandomIndex(maxValue));
   }
   return [...choices];
@@ -41,6 +41,16 @@ const App = () => {
   const [trackIndex, setTrackIndex] = useState(getRandomIndex(tracks.length));
   const currentTrack = getTrack(tracks, trackIndex);
 
+  const changeSong = () =>
+    setTrackIndex(prevState => {
+      if (tracks.length < 2) throw new Error('There are not enough songs');
+      let nextState = prevState;
+      while (nextState === prevState) {
+        nextState = getRandomIndex(tracks.length);
+      }
+      return nextState;
+    });
+
   const checkAnswer = (id: number) => {
     const message = `It is ${
       currentTrack.track.name
@@ -52,10 +62,9 @@ const App = () => {
     }
   };
 
-  const possibleTracks = shuffleArray([
-    trackIndex,
-    ...getWrongChoicesIndex(tracks.length),
-  ]).map(index => [getTrack(tracks, index), index] as const);
+  const possibleTracks = shuffleArray(
+    getChoicesIndex(trackIndex, tracks.length),
+  ).map(index => [getTrack(tracks, index), index] as const);
 
   return (
     <div className="App">
@@ -68,6 +77,9 @@ const App = () => {
         <AlbumCover track={currentTrack.track} />
       </div>
       <audio src={currentTrack.track.preview_url} controls autoPlay />
+      <div className="App-buttons">
+        <button onClick={changeSong}>Change song</button>
+      </div>
       <div className="App-buttons">
         {possibleTracks.map(([track, index]) => (
           <button onClick={() => checkAnswer(index)}>{track.track.name}</button>
