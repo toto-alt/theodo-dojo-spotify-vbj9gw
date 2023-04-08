@@ -38,11 +38,13 @@ const App = () => {
     return <div>Oups, something wrong happened</div>;
   }
 
-  const [trackIndex, setTrackIndex] = useState(getRandomIndex(tracks.length));
-  const currentTrack = getTrack(tracks, trackIndex);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(
+    getRandomIndex(tracks.length),
+  );
+  const currentTrack = getTrack(tracks, currentTrackIndex);
 
   const changeSong = () =>
-    setTrackIndex(prevState => {
+    setCurrentTrackIndex(prevState => {
       if (tracks.length < 2) throw new Error('There are not enough songs');
       let nextState = prevState;
       while (nextState === prevState) {
@@ -52,18 +54,26 @@ const App = () => {
     });
 
   const checkAnswer = (id: number) => {
+    const pickedTrack = getTrack(tracks, id);
+
     const message = `It is ${
-      currentTrack.track.name
-    } by ${currentTrack.track.artists.map(({ name }) => name).join(' & ')}`;
-    if (id === trackIndex) {
-      swal('Bravo', message, 'success');
+      pickedTrack.track.name
+    } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
+    if (id === currentTrackIndex) {
+      const message = `It is ${
+        pickedTrack.track.name
+      } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
+      swal('Bravo', message, 'success').then(changeSong);
     } else {
+      const message = `It is not ${
+        pickedTrack.track.name
+      } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
       swal('Wrong', message, 'error');
     }
   };
 
   const possibleTracks = shuffleArray(
-    getChoicesIndex(trackIndex, tracks.length),
+    getChoicesIndex(currentTrackIndex, tracks.length),
   ).map(index => [getTrack(tracks, index), index] as const);
 
   return (
