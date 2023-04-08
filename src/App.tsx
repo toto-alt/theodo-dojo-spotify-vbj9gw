@@ -3,6 +3,7 @@ import './App.css';
 import { useState } from 'react';
 import { fetchTracks } from './lib/fetchTracks';
 import { useQuery } from '@tanstack/react-query';
+import { AlbumCover } from './components';
 
 const trackUrls = [
   'https://p.scdn.co/mp3-preview/742294f35af9390e799dd96c633788410a332e52',
@@ -24,6 +25,14 @@ const App = () => {
   if (!isSuccess) {
     return <div>Oups, something wrong happened</div>;
   }
+  const [firstTrack, secondTrack, thirdTrack] = tracks;
+  if (
+    firstTrack === undefined ||
+    secondTrack === undefined ||
+    thirdTrack === undefined
+  ) {
+    return <div>You don't have any tracks</div>;
+  }
   return (
     <div className="App">
       <header className="App-header">
@@ -32,11 +41,16 @@ const App = () => {
       </header>
       <div className="App-images">
         <p>You currently have {tracks.length} songs</p>
-        <p>Your first song is {tracks[0]?.track.name}</p>
+        <AlbumCover track={firstTrack.track} />
+      </div>
+      <audio src={firstTrack.track.preview_url} controls autoPlay />
+      <div className="App-buttons">
+        <button onClick={goToNextTrack}>Next track</button>
       </div>
       <div className="App-buttons">
-        <audio src={trackUrls[trackIndex]} controls />
-        <button onClick={goToNextTrack}>Next track</button>
+        <button>{firstTrack.track.name}</button>
+        <button>{secondTrack.track.name}</button>
+        <button>{thirdTrack.track.name}</button>
       </div>
     </div>
   );
