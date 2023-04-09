@@ -1,6 +1,6 @@
 import { fetchAllTracks } from './fetchTracks';
 
-const PLAYLIST_ID = '3cEYpjA9oz9GiPac4AsH4n';
+const PLAYLIST_ID = '37i9dQZEVXbMDoHDwVN2tF';
 
 export const fetchPlaylistTracks = () => {
   return fetchAllTracks(

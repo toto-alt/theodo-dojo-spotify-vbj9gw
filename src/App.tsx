@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TrackChoice } from './components';
 import swal from 'sweetalert';
-import { SavedTrack } from 'spotify-types';
+import { Track } from 'spotify-types';
 import { shuffleArray } from './lib/shuffleArray';
 import { fetchPlaylistTracks } from './lib/fetchPlaylistTracks';
 
@@ -23,7 +23,7 @@ const getChoicesIndex = (correctIndex: number, maxValue: number) => {
   return [...choices];
 };
 
-const getTrack = (tracks: SavedTrack[], index: number) => {
+const getTrack = (tracks: Track[], index: number) => {
   const track = tracks[index];
   if (track === undefined) {
     throw new Error(`There is no track for index ${index}`);
@@ -36,6 +36,7 @@ const App = () => {
     queryKey: ['tracks'],
     queryFn: fetchPlaylistTracks,
   });
+
   if (!isSuccess) {
     return <div>Oups, something wrong happened</div>;
   }
@@ -70,19 +71,19 @@ const App = () => {
   const checkAnswer = (id: number) => {
     const pickedTrack = getTrack(tracks, id);
 
-    const message = `It is ${
-      pickedTrack.track.name
-    } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
+    const message = `It is ${pickedTrack.name} by ${pickedTrack.artists
+      .map(({ name }) => name)
+      .join(' & ')}`;
     if (id === currentTrackIndex) {
       stopTimer();
-      const message = `It is ${
-        pickedTrack.track.name
-      } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
+      const message = `It is ${pickedTrack.name} by ${pickedTrack.artists
+        .map(({ name }) => name)
+        .join(' & ')}`;
       swal('Bravo', message, 'success').then(changeSong);
     } else {
-      const message = `It is not ${
-        pickedTrack.track.name
-      } by ${pickedTrack.track.artists.map(({ name }) => name).join(' & ')}`;
+      const message = `It is not ${pickedTrack.name} by ${pickedTrack.artists
+        .map(({ name }) => name)
+        .join(' & ')}`;
       swal('Wrong', message, 'error');
     }
   };
@@ -100,7 +101,7 @@ const App = () => {
       <div className="App-images">
         <p>You currently have {tracks.length} songs</p>
         <audio
-          src={`${currentTrack.track.preview_url}#t=${30 * Math.random()}`}
+          src={`${currentTrack.preview_url}#t=${30 * Math.random()}`}
           controls
           autoPlay
           loop
@@ -108,7 +109,7 @@ const App = () => {
       </div>
       <button onClick={changeSong}>Change song</button>
       <div className="App-buttons">
-        {possibleTracks.map(([{ track }, index]) => (
+        {possibleTracks.map(([track, index]) => (
           <TrackChoice
             track={track}
             onClick={() => checkAnswer(index)}

@@ -1,14 +1,18 @@
-import { SavedTrack } from 'spotify-types';
+import { PlaylistTrack, SavedTrack, Track } from 'spotify-types';
 
-export interface TrackResult {
-  items: SavedTrack[];
+export interface TrackResult<T> {
+  items: T[];
   next: string | null;
 }
 
-const apiToken =
-  'BQDrz0rqLx2cXcDlWPAWQASxP0DIIMuxEyE-iKCgXIDpSUAMKEdvDeWV8ri47D5cmoe2Bfnvzd3izQw3Ws2_IRCXlTSsEpquIXyZpePzei9NbHggtYfhmXOHfAJLCoS_9wa0TRYKGd9ZPT6cqnslvoX9kNJoG2cv10dmkg--j0qmv0bSh9XEnfBKZYjDNZHDdvx_xVahsLn0lorFxz9E7sXa5iazhy5sybwBcU3bLvZxUFR8O5Y65nh_WbbxLgYihlyvAJdYsa5l0vfsnxrEroA2mq69UqYdpNiOx-0gfbUpWfLsBwG_sd1-qwiHdMnkwabxWDiStvwV7PKjs3g-hs-ppufKFg';
+const isTrack = (
+  track: PlaylistTrack['track'] | SavedTrack['track'],
+): track is Track => track !== null && track.type === 'track';
 
-const fetchTracks = async (url: string) => {
+const apiToken =
+  'BQAJyQCvJVl5eFRBD2j60UjnMvez8_1XtyCGnLhVAIoBYpwdfUdsP1WD-0u6EvURJYp7ZPuq3zovJDy1PuGl13440zxZC6HdtKu7yA0Us6_MWznalK_Se9ASFHgU-Fv6XotWv6l8h31CddODnLcB2Kop9LEhjz19ymKFPFdl2Sak4Gx4TlpQ8J-vhYH-MABR2tdlDeVf8FiuvTwAs2nJpVwL4Lnj8Uwb1iCt9JpOqa24pUdJf-jJPoan_Yt9nJRGVTXUU9wkpn5T84LQIy9qXGKYLNrKtcPKIlgULQi_qqSzqAn9qYHmawkNM4enla0U7fYuSbX17-N7vMYjk7O4NjYedajrpQ';
+
+const fetchTracks = async <T>(url: string) => {
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -18,16 +22,23 @@ const fetchTracks = async (url: string) => {
   if (!response.ok) {
     throw new Error(`Fetching tracks failed with status ${response.status}`);
   }
-  return (await response.json()) as TrackResult;
+  return (await response.json()) as TrackResult<T>;
 };
 
-export const fetchAllTracks = async (url: string) => {
-  const result: SavedTrack[] = [];
+export const fetchAllTracks = async <T extends PlaylistTrack | SavedTrack>(
+  url: string,
+) => {
+  const result: Track[] = [];
 
-  let data: TrackResult = { items: [], next: url };
+  let data: TrackResult<T> = { items: [], next: url };
   while (data.next !== null) {
     data = await fetchTracks(data.next);
-    result.push(...data.items);
+    result.push(
+      ...(data.items
+        .map(({ track }) => track)
+        .filter(track => isTrack(track)) as Track[]),
+    );
   }
+
   return result;
 };
