@@ -8,7 +8,7 @@ const TrackChoice = ({
   track: Track;
   onClick: () => void;
 }) => (
-  <div className="App-buttons--choice" key={track.name}>
+  <div className="App-buttons--choice">
     <AlbumCover track={track} />
     <button onClick={onClick}>{track.name}</button>
   </div>

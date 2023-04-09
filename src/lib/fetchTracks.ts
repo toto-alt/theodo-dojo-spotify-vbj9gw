@@ -1,10 +1,15 @@
 import { SavedTrack } from 'spotify-types';
 
-const apiToken =
-  'BQBXNJtJbuwQDLyur8Z4u_NS74-i6hjKktyD_3h8bJs9PhLcM6bvT8uxpD_b47N1MDpk_5hQQN33JfKjOUdY67sN2UhpHwIQqkr7MbZ6alVNVcfEIIicUmlbdL7EtRWd2kYBmr3cCmhPBagBDyXhxieyB7UMY6EQpgdn3lXQTxMxiOeCS8d1GTYfO78ItE9WVcatrM2BTY7jNeYBARJJU27IXYvwXyhUf8eJp77WgSry9mYDqQnBxlhszMXBT08ytiWIfVhO3JOwFxT729YtfjWsRP2J1OJdu4rGEUCDSYPpb7eLWx_AiIyxtVgtaXfYHHk7s9LRQfhCQTXXPnWVXAeoDcZPmg';
+export interface TrackResult {
+  items: SavedTrack[];
+  next: string | null;
+}
 
-export const fetchTracks = async (): Promise<SavedTrack[]> => {
-  const response = await fetch('https://api.spotify.com/v1/me/tracks', {
+const apiToken =
+  'BQDrz0rqLx2cXcDlWPAWQASxP0DIIMuxEyE-iKCgXIDpSUAMKEdvDeWV8ri47D5cmoe2Bfnvzd3izQw3Ws2_IRCXlTSsEpquIXyZpePzei9NbHggtYfhmXOHfAJLCoS_9wa0TRYKGd9ZPT6cqnslvoX9kNJoG2cv10dmkg--j0qmv0bSh9XEnfBKZYjDNZHDdvx_xVahsLn0lorFxz9E7sXa5iazhy5sybwBcU3bLvZxUFR8O5Y65nh_WbbxLgYihlyvAJdYsa5l0vfsnxrEroA2mq69UqYdpNiOx-0gfbUpWfLsBwG_sd1-qwiHdMnkwabxWDiStvwV7PKjs3g-hs-ppufKFg';
+
+const fetchTracks = async (url: string) => {
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       Authorization: 'Bearer ' + apiToken,
@@ -13,7 +18,16 @@ export const fetchTracks = async (): Promise<SavedTrack[]> => {
   if (!response.ok) {
     throw new Error(`Fetching tracks failed with status ${response.status}`);
   }
-  const data = (await response.json()) as { items: SavedTrack[] };
+  return (await response.json()) as TrackResult;
+};
 
-  return data.items;
+export const fetchAllTracks = async (url: string) => {
+  const result: SavedTrack[] = [];
+
+  let data: TrackResult = { items: [], next: url };
+  while (data.next !== null) {
+    data = await fetchTracks(data.next);
+    result.push(...data.items);
+  }
+  return result;
 };

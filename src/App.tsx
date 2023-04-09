@@ -1,12 +1,12 @@
 import logo from './assets/logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
-import { fetchTracks } from './lib/fetchTracks';
 import { useQuery } from '@tanstack/react-query';
 import { TrackChoice } from './components';
 import swal from 'sweetalert';
 import { SavedTrack } from 'spotify-types';
 import { shuffleArray } from './lib/shuffleArray';
+import { fetchPlaylistTracks } from './lib/fetchPlaylistTracks';
 
 const MAX_TIME = 30 * 1000;
 
@@ -34,7 +34,7 @@ const getTrack = (tracks: SavedTrack[], index: number) => {
 const App = () => {
   const { data: tracks, isSuccess } = useQuery({
     queryKey: ['tracks'],
-    queryFn: fetchTracks,
+    queryFn: fetchPlaylistTracks,
   });
   if (!isSuccess) {
     return <div>Oups, something wrong happened</div>;
@@ -43,19 +43,17 @@ const App = () => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(
     getRandomIndex(tracks.length),
   );
-  const [timer, setTimer] = useState<number>();
+  let timer: number | undefined = undefined;
   const stopTimer = () => {
     clearTimeout(timer);
-    setTimer(undefined);
   };
 
   const currentTrack = getTrack(tracks, currentTrackIndex);
 
   useEffect(() => {
-    const timeout = setTimeout(changeSong, MAX_TIME);
-    setTimer(timeout);
+    timer = setTimeout(changeSong, MAX_TIME);
     return () => {
-      clearTimeout(timeout);
+      clearTimeout(timer);
     };
   }, [currentTrackIndex]);
 
@@ -101,12 +99,21 @@ const App = () => {
       </header>
       <div className="App-images">
         <p>You currently have {tracks.length} songs</p>
-        <audio src={currentTrack.track.preview_url} controls autoPlay />
+        <audio
+          src={`${currentTrack.track.preview_url}#t=${30 * Math.random()}`}
+          controls
+          autoPlay
+          loop
+        />
       </div>
       <button onClick={changeSong}>Change song</button>
       <div className="App-buttons">
         {possibleTracks.map(([{ track }, index]) => (
-          <TrackChoice track={track} onClick={() => checkAnswer(index)} />
+          <TrackChoice
+            track={track}
+            onClick={() => checkAnswer(index)}
+            key={track.name}
+          />
         ))}
       </div>
     </div>
